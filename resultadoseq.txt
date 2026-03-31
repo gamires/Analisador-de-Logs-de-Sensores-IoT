@@ -1,0 +1,51 @@
+﻿=== Estatisticas do Log de Sensores ===
+
+1. Media de temperatura por sensor:
+sensor_1 -> 26.03  (100000 leituras)
+sensor_4 -> 26.03  (100000 leituras)
+sensor_5 -> 26.03  (100000 leituras)
+sensor_6 -> 26.03  (100000 leituras)
+sensor_7 -> 26.02  (100000 leituras)
+sensor_9 -> 26.02  (100000 leituras)
+sensor_10 -> 26.03  (100000 leituras)
+sensor_16 -> 26.03  (100000 leituras)
+sensor_23 -> 26.03  (100000 leituras)
+sensor_25 -> 26.03  (100000 leituras)
+sensor_26 -> 26.02  (100000 leituras)
+sensor_29 -> 26.02  (100000 leituras)
+sensor_34 -> 26.03  (100000 leituras)
+sensor_36 -> 26.02  (100000 leituras)
+sensor_37 -> 26.02  (100000 leituras)
+sensor_38 -> 26.02  (100000 leituras)
+sensor_42 -> 26.03  (100000 leituras)
+sensor_45 -> 26.03  (100000 leituras)
+sensor_49 -> 26.02  (100000 leituras)
+sensor_51 -> 26.03  (100000 leituras)
+sensor_52 -> 26.02  (100000 leituras)
+sensor_53 -> 26.03  (100000 leituras)
+sensor_57 -> 26.03  (100000 leituras)
+sensor_59 -> 26.02  (100000 leituras)
+sensor_61 -> 26.02  (100000 leituras)
+sensor_66 -> 26.03  (100000 leituras)
+sensor_68 -> 26.04  (100000 leituras)
+sensor_71 -> 26.03  (100000 leituras)
+sensor_72 -> 26.03  (100000 leituras)
+sensor_73 -> 26.03  (100000 leituras)
+sensor_75 -> 26.03  (100000 leituras)
+sensor_78 -> 26.03  (100000 leituras)
+sensor_79 -> 26.03  (100000 leituras)
+sensor_89 -> 26.03  (100000 leituras)
+sensor_90 -> 26.03  (100000 leituras)
+sensor_95 -> 26.04  (100000 leituras)
+sensor_96 -> 26.03  (100000 leituras)
+sensor_98 -> 26.03  (100000 leituras)
+sensor_100 -> 26.03  (100000 leituras)
+
+2. Sensor mais instavel (maior desvio padrao):
+sensor_34 (desvio padrao = 4.4075)
+
+3. Total de alertas (ALERTA + CRITICO): 11670377
+
+4. Consumo total de energia: 5975548334.50
+
+Tempo de execucao: 109.091000 segundos
