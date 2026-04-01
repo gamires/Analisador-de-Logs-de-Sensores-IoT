@@ -56,8 +56,8 @@ typedef struct {
 
 
 // parsing rápido do id
-https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc/Static-Analyzer-Options.html
-https://medium.com/@arkarthick/using-static-branch-prediction-with-gccrecently-i-extended-my-heap-manager-for-our-product-to-have-7cadeb9a2208 
+//https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc/Static-Analyzer-Options.html
+//https://medium.com/@arkarthick/using-static-branch-prediction-with-gccrecently-i-extended-my-heap-manager-for-our-product-to-have-7cadeb9a2208 
 static inline int extrair_id_sensor_fast(const char *s) {
     return atoi(s + 7); // pula "sensor_"
 }
@@ -82,8 +82,8 @@ void *processar_linhas(void *arg) {
 
 
     // PARSING MANUAL - 
-    https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc/Static-Analyzer-Options.html
-    https://medium.com/@arkarthick/using-static-branch-prediction-with-gccrecently-i-extended-my-heap-manager-for-our-product-to-have-7cadeb9a2208 
+    //https://gcc.gnu.org/onlinedocs/gcc-14.1.0/gcc/Static-Analyzer-Options.html
+    //https://medium.com/@arkarthick/using-static-branch-prediction-with-gccrecently-i-extended-my-heap-manager-for-our-product-to-have-7cadeb9a2208 
     while (__builtin_expect(ptr < fim, 1)) {
 
         
