@@ -47,48 +47,47 @@ int main(int argc, char *argv[]) {
 
     clock_t inicio = clock();
 
-    while (fgets(line, sizeof(line), fp)) {
-        int    sensor_id;
-        char   data[12], hora[10], tipo[12], status[9];
-        double val;
-
-        int n = sscanf(line,
-            "sensor_%d %11s %9s %11s %lf status %8s",
-            &sensor_id, data, hora, tipo, &val, status);
-
-        if (n != 6) continue;
-
-        if (sensor_id < 0 || sensor_id >= MAX_SENSORS) {
-            fprintf(stderr, "Aviso: sensor_id %d fora do intervalo, ignorado\n", sensor_id);
-            continue;
-        }
-
+   while (fgets(line, sizeof(line), fp)) {
         total_linhas++;
 
+        char *ptr = line + 7; 
+        char *endptr;
+        int sensor_id = (int)strtol(ptr, &endptr, 10);
+        
+        if (sensor_id < 0 || sensor_id >= MAX_SENSORS) continue;
+
+        char *data_ptr = endptr + 1;
+        char *hora_ptr = strchr(data_ptr, ' ') + 1;
+        char *tipo_ptr = strchr(hora_ptr, ' ') + 1;
+
+        double val = strtod(tipo_ptr + 12, &endptr);
+
+        char *status_ptr = strstr(endptr, "status ") + 7;
+
         SensorStat *s = &stats[sensor_id];
-        s->ativo     = 1;
+        s->ativo = 1;
         s->sensor_id = sensor_id;
-        snprintf(s->ultima_data,   sizeof(s->ultima_data),   "%s", data);
-        snprintf(s->ultima_hora,   sizeof(s->ultima_hora),   "%s", hora);
-        snprintf(s->ultimo_status, sizeof(s->ultimo_status), "%s", status);
 
-        if (strcmp(status, "ALERTA") == 0 || strcmp(status, "CRITICO") == 0)
+        memcpy(s->ultima_data, data_ptr, 10); s->ultima_data[10] = '\0';
+        memcpy(s->ultima_hora, hora_ptr, 8);  s->ultima_hora[8] = '\0';
+        
+        if (status_ptr[0] == 'A' || status_ptr[0] == 'C') {
             total_alertas++;
-
-        if (strcmp(tipo, "temperatura") == 0) {
-            s->contagem++;
-            double delta  = val - s->media;
-            s->media += delta / (double)s->contagem;
-            double delta2 = val - s->media;
-            s->soma_quadrados   += delta * delta2;
+            strncpy(s->ultimo_status, status_ptr, 8);
+            s->ultimo_status[8] = '\0';
         }
 
-        if (strcmp(tipo, "energia") == 0) {
-            energia_total   += val;
+        if (tipo_ptr[0] == 't') { 
+            s->contagem++;
+            double delta = val - s->media;
+            s->media += delta / (double)s->contagem;
+            s->soma_quadrados += delta * (val - s->media);
+        } else if (tipo_ptr[0] == 'e') {
+            energia_total += val;
             s->energia_soma += val;
         }
     }
-
+    
     fclose(fp);
 
     clock_t fim = clock();
