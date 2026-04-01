@@ -13,7 +13,7 @@ import math
 
 # --- Configurações padrão ---
 DEFAULT_SENSORES = 50
-DEFAULT_DIAS = 1
+DEFAULT_DIAS = 3
 DEFAULT_OUTPUT = "sensores.log"
 
 # --- Tipos de sensores e suas faixas típicas ---

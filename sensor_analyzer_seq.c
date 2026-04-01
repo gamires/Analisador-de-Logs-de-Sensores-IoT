@@ -3,48 +3,47 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <stdint.h>
+#include <inttypes.h>
 
-#define MAX_SENSORS  1000
-#define MAX_READINGS 100000
-
-typedef struct {
-    double *valores;
-    int     quant_leituras;
-} Leituras;
+#define MAX_SENSORS   1000
+#define TOP_TEMP      10
 
 typedef struct {
+    int      ativo;
     int      sensor_id;
-    char     data[12];
-    char     hora[10];
-    Leituras temp;
-    char     status[9];
-} SensorTemp;
+
+    char     ultima_data[12];
+    char     ultima_hora[10];
+    char     ultimo_status[9];
+
+    int64_t  contagem;
+    double   media;
+    double   soma_quadrados;
+
+    double   energia_soma;
+} SensorStat;
 
 int main(int argc, char *argv[]) {
     const char *filename = (argc > 1) ? argv[1] : "sensores.log";
 
     FILE *fp = fopen(filename, "r");
     if (!fp) {
-        fprintf(stderr, "Erro: nao foi possivel abrir o arquivo '%s'\n", filename);
+        fprintf(stderr, "Erro: nao foi possivel abrir '%s'\n", filename);
         return 1;
     }
 
-    SensorTemp *temps = calloc(MAX_SENSORS, sizeof(SensorTemp));
-    if (!temps) {
+    SensorStat *stats = calloc(MAX_SENSORS, sizeof(SensorStat));
+    if (!stats) {
         fprintf(stderr, "Erro: falha ao alocar memoria para os sensores\n");
         fclose(fp);
         return 1;
     }
 
-    for (int i = 0; i < MAX_SENSORS; i++) {
-        temps[i].sensor_id = -1;
-        temps[i].temp.valores = NULL;
-        temps[i].temp.quant_leituras = 0;
-    }
-
-    int    total_alertas  = 0;
-    double energia_total  = 0.0;
-    char   line[256];
+    int64_t total_alertas = 0;
+    double  energia_total = 0.0;
+    int64_t total_linhas  = 0;
+    char    line[256];
 
     clock_t inicio = clock();
 
@@ -60,92 +59,86 @@ int main(int argc, char *argv[]) {
         if (n != 6) continue;
 
         if (sensor_id < 0 || sensor_id >= MAX_SENSORS) {
-            fprintf(stderr, "Aviso: sensor_id %d fora do intervalo, linha ignorada\n", sensor_id);
+            fprintf(stderr, "Aviso: sensor_id %d fora do intervalo, ignorado\n", sensor_id);
             continue;
         }
 
-        temps[sensor_id].sensor_id = sensor_id;
-        snprintf(temps[sensor_id].data,   sizeof(temps[sensor_id].data),   "%s", data);
-        snprintf(temps[sensor_id].hora,   sizeof(temps[sensor_id].hora),   "%s", hora);
-        snprintf(temps[sensor_id].status, sizeof(temps[sensor_id].status), "%s", status);
+        total_linhas++;
+
+        SensorStat *s = &stats[sensor_id];
+        s->ativo     = 1;
+        s->sensor_id = sensor_id;
+        snprintf(s->ultima_data,   sizeof(s->ultima_data),   "%s", data);
+        snprintf(s->ultima_hora,   sizeof(s->ultima_hora),   "%s", hora);
+        snprintf(s->ultimo_status, sizeof(s->ultimo_status), "%s", status);
 
         if (strcmp(status, "ALERTA") == 0 || strcmp(status, "CRITICO") == 0)
             total_alertas++;
 
         if (strcmp(tipo, "temperatura") == 0) {
-            Leituras *l = &temps[sensor_id].temp;
-
-            if (l->valores == NULL) {
-                l->valores = malloc(MAX_READINGS * sizeof(double));
-                if (!l->valores) {
-                    fprintf(stderr, "Erro: falha ao alocar leituras do sensor %d\n", sensor_id);
-                    continue;
-                }
-            }
-
-            if (l->quant_leituras < MAX_READINGS)
-                l->valores[l->quant_leituras++] = val;
+            s->contagem++;
+            double delta  = val - s->media;
+            s->media += delta / (double)s->contagem;
+            double delta2 = val - s->media;
+            s->soma_quadrados   += delta * delta2;
         }
 
-        if (strcmp(tipo, "energia") == 0)
-            energia_total += val;
+        if (strcmp(tipo, "energia") == 0) {
+            energia_total   += val;
+            s->energia_soma += val;
+        }
     }
 
     fclose(fp);
-     /* ========================================================
-       RESULTADOS
-       ======================================================== */
+
+    clock_t fim = clock();
+
     printf("=== Estatisticas do Log de Sensores ===\n\n");
 
-    printf("1. Media de temperatura por sensor:\n");
-    for (int i = 0; i < MAX_SENSORS; i++) {
-        if (temps[i].sensor_id < 0 || temps[i].temp.quant_leituras == 0) continue;
+    printf("1. Media de temperatura por sensor (primeiros %d):\n", TOP_TEMP);
+    int exibidos = 0;
+    for (int i = 0; i < MAX_SENSORS && exibidos < TOP_TEMP; i++) {
+        SensorStat *s = &stats[i];
+        if (!s->ativo || s->contagem == 0) continue;
 
-        double soma = 0.0;
-        for (int j = 0; j < temps[i].temp.quant_leituras; j++)
-            soma += temps[i].temp.valores[j];
-        double media = soma / temps[i].temp.quant_leituras;
-
-        printf("sensor_%d -> %.2f  (%d leituras)\n",
-               temps[i].sensor_id, media, temps[i].temp.quant_leituras);
+        printf("   sensor_%d -> %.2f C  (%" PRId64 " leituras)\n", s->sensor_id, s->media, s->contagem);
+        exibidos++;
     }
+    if (exibidos == 0)
+        printf("Nenhum dado de temperatura encontrado.\n");
 
-    printf("\n2. Sensor mais instavel (maior desvio padrao):\n");
+    printf("\n2. Sensor mais instavel (maior desvio padrao de temperatura):\n");
     double maior_dp = -1.0;
     int    idx_inst = -1;
 
     for (int i = 0; i < MAX_SENSORS; i++) {
-        if (temps[i].temp.quant_leituras < 2) continue;
+        SensorStat *s = &stats[i];
+        if (!s->ativo || s->contagem < 2) continue;
 
-        double soma = 0.0;
-        for (int j = 0; j < temps[i].temp.quant_leituras; j++)
-            soma += temps[i].temp.valores[j];
-        double media = soma / temps[i].temp.quant_leituras;
+        double dp = sqrt(s->soma_quadrados / (double)s->contagem);
 
-        double var = 0.0;
-        for (int j = 0; j < temps[i].temp.quant_leituras; j++) {
-            double d = temps[i].temp.valores[j] - media;
-            var += d * d;
+        if (dp > maior_dp) {
+            maior_dp = dp;
+            idx_inst = i;
         }
-        double dp = sqrt(var / temps[i].temp.quant_leituras);
-
-        if (dp > maior_dp) { maior_dp = dp; idx_inst = i; }
     }
 
     if (idx_inst >= 0)
-        printf("sensor_%d (desvio padrao = %.4f)\n", temps[idx_inst].sensor_id, maior_dp);
+        printf("sensor_%d (desvio padrao = %.4f C)\n", stats[idx_inst].sensor_id, maior_dp);
     else
         printf("Dados insuficientes para calcular.\n");
 
-    printf("\n3. Total de alertas (ALERTA + CRITICO): %d\n", total_alertas);
-    printf("\n4. Consumo total de energia: %.2f\n", energia_total);
+    printf("\n3. Total de alertas (ALERTA + CRITICO): %" PRId64 "\n", total_alertas);
 
-    clock_t fim = clock();
-    printf("\nTempo de execucao: %f segundos\n", ((double)(fim - inicio)) / CLOCKS_PER_SEC);
+    printf("\n4. Consumo total de energia: %.2f W\n", energia_total);
 
-    for (int i = 0; i < MAX_SENSORS; i++)
-        free(temps[i].temp.valores);
-    free(temps);
+    double elapsed = ((double)(fim - inicio)) / CLOCKS_PER_SEC;
+    printf("\n5. Tempo de execucao: %.4f segundos\n", elapsed);
 
+    int ativos = 0;
+    for (int i = 0; i < MAX_SENSORS; i++) ativos += stats[i].ativo;
+    printf("\n   (Linhas processadas: %" PRId64 " | Sensores ativos: %d)\n", total_linhas, ativos);
+
+    free(stats);
     return 0;
 }
