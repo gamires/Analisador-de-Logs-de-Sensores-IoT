@@ -1,3 +1,10 @@
+/*
+Aluno: Pedro Henrique Carvalho Pereira — RA: 10418861
+Aluno: Mateus Ribeiro Cerqueira — RA: 10443901
+Aluno: Gabriel Mires Camargo — RA: 10436741
+Turma: 05D - CC
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
