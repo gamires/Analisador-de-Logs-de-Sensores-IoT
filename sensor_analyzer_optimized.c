@@ -1,4 +1,9 @@
 /*
+Aluno: Pedro Henrique Carvalho Pereira — RA: 10418861
+Aluno: Mateus Ribeiro Cerqueira — RA: 10443901
+Aluno: Gabriel Mires Camargo — RA: 10436741
+Turma: 05D - CC
+
 Fontes:
 - https://www.ibm.com/docs/pt-br/i/7.6.0?topic=functions-atoi-convert-character-string-integer
 - https://linguagemc.com.br/argumentos-em-linha-de-comando/ 
