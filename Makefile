@@ -1,3 +1,6 @@
+#Aluno: Pedro Henrique Carvalho Pereira — RA: 10418861
+#Aluno: Mateus Ribeiro Cerqueira — RA: 10443901
+#Aluno: Gabriel Mires Camargo — RA: 10436741
 # Makefile para Analisador de Logs de Sensores IoT
 # Este Makefile foi baseado nos Makefiles escritos pelo professor Lucas
 # durante a disciplina de Sistemas Operacionais.
@@ -38,17 +41,6 @@ $(PAR): $(PAR_SRC)
 $(OPT): $(OPT_SRC)
 	$(CC) $(OPT_SRC) -o $(OPT) -pthread -O2
 
-# Executar testes
-.PHONY: test
-test: $(TARGETS)
-	@echo "=== Executando Versão Sequencial ==="
-	./$(SEQ)
-	@echo ""
-	@echo "=== Executando Versão Paralela ==="
-	./$(PAR)
-	@echo ""
-	@echo "=== Executando Versão Otimizada ==="
-	./$(OPT)
 
 # Limpar executáveis
 .PHONY: clean
@@ -73,7 +65,6 @@ help:
 	@echo "  make seq   - Compila apenas a versão sequencial"
 	@echo "  make par   - Compila apenas a versão paralela"
 	@echo "  make opt   - Compila apenas a versão otimizada"
-	@echo "  make test  - Executa as 3 versões em sequência"
 	@echo "  make clean - Remove os executáveis compilados"
 	@echo "  make setup - Roda o script python para gerar novos logs"
 	@echo "  make help  - Mostra esta mensagem"
